@@ -26,8 +26,9 @@ def aiInference(request):
             data = request.data['text']
             judgement = aiLogic.performJudgement(data)
             return Response({'verdict': judgement}, status=status.HTTP_200_OK)
-        except:
-            return Response({'error': "Wrong format JSON"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(f"An error occurred: {str(e)}")
+            return Response({'error': "An error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     if request.method == 'GET':
         return Response({'message': "Enter Data"}, status=status.HTTP_200_OK)
