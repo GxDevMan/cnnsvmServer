@@ -37,42 +37,40 @@ def aiInference(request):
 def chat_filter(request):
     if request.method == 'POST':
         try:
-            input_text = request.data['text']
+            input_text = request.data['text'].lower()  # Convert input text to lowercase
             sentences = input_text.splitlines()
             total_word_count = 0
             banned_word_count = 0
 
-
             db_path = './cnnsvmPortal/bannedWords/Bag_of_Words.txt'
-
 
             if db_path.endswith('.db'):
                 connection = sqlite3.connect(db_path)
                 cursor = connection.cursor()
             else:
                 with open(db_path, 'r') as file:
-                    word_list = [line.strip() for line in file]
+                    word_list = [line.strip().lower() for line in file]
 
             for sentence in sentences:
-                words_in_sentence = sentence.split()  # Split the sentence into words
+                words_in_sentence = sentence.split()
                 total_word_count += len(words_in_sentence)
 
-
                 if db_path.endswith('.db'):
-
                     cursor.execute("SELECT word FROM word_list")
                     words_in_db = [row[0] for row in cursor.fetchall()]
-                    banned_word_count += sum(1 for word in words_in_sentence if word in words_in_db)
+                    banned_word_count += sum(2 for word in words_in_sentence if word.lower() in words_in_db)
                 else:
-                    banned_word_count += sum(2 for word in words_in_sentence if word in word_list)
+                    banned_word_count += sum(2 for word in words_in_sentence if word.lower() in word_list)
 
             if db_path.endswith('.db'):
                 connection.close()
 
             if total_word_count == 0:
-                ratio = 0.0  # Avoid division by zero
+                ratio = 0.0
             else:
                 ratio = banned_word_count / total_word_count
+                if ratio > 1:
+                    ratio = 1.0
 
             toxic = 0
             if banned_word_count > 0:
